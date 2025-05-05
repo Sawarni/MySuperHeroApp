@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/category/{category}"
 @* @attribute [StreamRendering(true)] *@
 @using System.Collections.Generic
 @using MySuperHeroApp.Web.Model
@@ -15,44 +15,37 @@
     }
     else
     {
-        @foreach (var category in SuperHeroCategorized)
-        {
-            <section class="category">
-                <h2 class="clickable" @onclick="()=>GoToCategory(category.Key)">@category.Key</h2>
-                <SuperHeroCardContainer SuperHeroes="@category.Value"/>
-            </section>
-        }
+
+        <section class="category">
+            <h2>@Category</h2>
+            <SuperHeroCardContainer SuperHeroes="@superHeroes" />
+        </section>
+
     }
 </div>
 
 @code {
-    private Dictionary<string, List<SuperHero>> SuperHeroCategorized = new();
+
+    [Parameter]
+    public string Category { get; set; } = string.Empty;
+
+    private List<SuperHero> superHeroes = new();
     private bool isLoading = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(firstRender)
+        if (firstRender)
         {
             Logger.LogInformation("Loading super heroes category from API...");
 
             var categories = await SuperHeroClientService.GetPublishersAsync() ?? new List<string>();
-            foreach (var category in categories)
-            {
-                var superHeroes = await SuperHeroClientService.GetSuperHeroesByPublisherAsync(category, 1, 5);
-                if (superHeroes != null && superHeroes.Count() > 0)
-                {
-                    SuperHeroCategorized.Add(category, superHeroes.ToList());
-                }
-            }
 
+            superHeroes.AddRange(await SuperHeroClientService.GetSuperHeroesByPublisherAsync(Category));
             isLoading = false;
             StateHasChanged();
             Logger.LogInformation("Loading completed super heroes from API...");
         }
-    }   
-
-    private void GoToCategory(string category)
-    {
-        NavigationManager.NavigateTo($"/category/{category}");
     }
+
+
 }

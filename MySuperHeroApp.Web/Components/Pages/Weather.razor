@@ -44,6 +44,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await Task.Delay(2000); // Simulate a delay for loading data
         forecasts = await WeatherApi.GetWeatherAsync();
     }
 }

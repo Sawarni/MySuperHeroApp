@@ -1,5 +1,7 @@
+using Microsoft.Extensions.AI;
 using MySuperHeroApp.Web;
 using MySuperHeroApp.Web.Components;
+using MySuperHeroApp.Web.ServiceClients;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,15 @@ builder.Services.AddHttpClient<WeatherApiClient>(client =>
         client.BaseAddress = new("https+http://apiservice");
     });
 
+builder.Services.AddHttpClient<SuperHeroServiceClient>(client =>
+{
+    // This URL uses "https+http://" to indicate HTTPS is preferred over HTTP.
+    // Learn more about service discovery scheme resolution at https://aka.ms/dotnet/sdschemes.
+    client.BaseAddress = new("https+http://apiservice");
+});
+
+builder.Services.AddChatClient(new OllamaChatClient(builder.Configuration["OllamaSettings:Url"] ?? "",
+    builder.Configuration["OllamaSettings:Model"] ?? ""));
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -33,7 +44,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.UseOutputCache();
+//app.UseOutputCache();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

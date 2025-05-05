@@ -35,6 +35,7 @@ app.MapGet("/weatherforecast", () =>
 
 app.MapDefaultEndpoints();
 app.MapSuperHeroEndpoints();
+app.MapPublisherEndpoints();
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)

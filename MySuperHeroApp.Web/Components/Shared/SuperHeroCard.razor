@@ -1,0 +1,23 @@
+﻿@using MySuperHeroApp.Web.Model
+@using MySuperHeroApp.Web.ServiceClients
+@inject SuperHeroServiceClient SuperHeroClientService;
+@inject NavigationManager NavigationManager;
+
+ 
+<div class="card" @onclick="NavigateToSuperHero">
+
+    <img src="@ImageSrc" alt="@SuperHero.Name" title="@SuperHero.Name"  />
+    <div class="card-title" >@SuperHero.Name </div>
+</div>
+@code{
+    [Parameter]
+    public SuperHero SuperHero { get; set; } = new();
+
+    private string  ImageSrc => SuperHeroClientService.GetPicture(SuperHero.Id ?? "0");
+
+    private void NavigateToSuperHero()
+    {
+        NavigationManager.NavigateTo($"/superhero/{SuperHero.Id}");
+    }
+
+}

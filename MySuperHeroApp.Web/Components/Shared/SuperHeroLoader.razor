@@ -1,0 +1,19 @@
+﻿<div class="loader">
+    <div class="pulse">
+        <img src="@imageList[index]"  class="img-thumbnail rounded"/>
+    </div>
+</div>
+
+@code {
+    List<string> imageList = new()
+    {
+        "images/Loader/BatmanLogo.jpg",
+        "images/Loader/HulkLogo.jpg",
+        "images/Loader/IronManLogo.jpg",
+        "images/Loader/SupermanLogo.jpg"
+    };
+
+    int index = new Random().Next(0, 3);
+
+}
+

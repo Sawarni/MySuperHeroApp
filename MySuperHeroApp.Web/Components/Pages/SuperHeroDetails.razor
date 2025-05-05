@@ -1,0 +1,247 @@
+﻿@page "/superhero/{id}"
+@rendermode InteractiveServer
+@using System.Collections.Generic
+@using Microsoft.Extensions.AI
+@using MySuperHeroApp.Web.Model
+@using MySuperHeroApp.Web.ServiceClients
+@using MySuperHeroApp.Web.Components.Shared
+@inject ILogger<SuperHeroDetails> Logger;
+@inject SuperHeroServiceClient SuperHeroClientService;
+@inject IChatClient chatClient;
+@using System.Text.Json
+@using System.Text.Json.Serialization
+<div class="main">
+    @if (SuperHero is null)
+    {
+        <SuperHeroLoader />
+    }
+    else
+    {
+        <div class="container">
+            <div class="image-container">
+                <SuperHeroCard SuperHero="@SuperHero" />
+            </div>
+            <div class="details-container">
+                <h1>@SuperHero.Name</h1>
+
+                @if (!string.IsNullOrEmpty(SuperHero.Biography.FullName))
+                {
+                    <p><strong>Full Name:</strong> @SuperHero.Biography.FullName</p>
+                }
+
+                @if (!string.IsNullOrEmpty(SuperHero.Biography.PlaceOfBirth))
+                {
+                    <p><strong>Place of Birth:</strong> @SuperHero.Biography.PlaceOfBirth</p>
+                }
+
+                @if (!string.IsNullOrEmpty(SuperHero.Biography.FirstAppearance))
+                {
+                    <p><strong>First Appearance:</strong> @SuperHero.Biography.FirstAppearance</p>
+                }
+
+                @if (SuperHero.PowerStats != null)
+                {
+                    <h2>Power Stats</h2>
+                    <div class="power-stats">
+                        @if (!string.IsNullOrEmpty(SuperHero.PowerStats.Intelligence))
+                        {
+                            <div class="stat">
+                                <span>Intelligence</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: @SuperHero.PowerStats.Intelligence%;"></div>
+                                </div>
+                                <span class="value">@SuperHero.PowerStats.Intelligence</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(SuperHero.PowerStats.Strength))
+                        {
+                            <div class="stat">
+                                <span>Strength</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: @SuperHero.PowerStats.Strength%;"></div>
+                                </div>
+                                <span class="value">@SuperHero.PowerStats.Strength</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(SuperHero.PowerStats.Speed))
+                        {
+                            <div class="stat">
+                                <span>Speed</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: @SuperHero.PowerStats.Speed%;"></div>
+                                </div>
+                                <span class="value">@SuperHero.PowerStats.Speed</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(SuperHero.PowerStats.Durability))
+                        {
+                            <div class="stat">
+                                <span>Durability</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: @SuperHero.PowerStats.Durability%;"></div>
+                                </div>
+                                <span class="value">@SuperHero.PowerStats.Durability</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(SuperHero.PowerStats.Power))
+                        {
+                            <div class="stat">
+                                <span>Power</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: @SuperHero.PowerStats.Power%;"></div>
+                                </div>
+                                <span class="value">@SuperHero.PowerStats.Power</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(SuperHero.PowerStats.Combat))
+                        {
+                            <div class="stat">
+                                <span>Combat</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: @SuperHero.PowerStats.Combat%;"></div>
+                                </div>
+                                <span class="value">@SuperHero.PowerStats.Combat</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="details-container">
+                @if (SuperHero.Biography.Aliases?.Any() == true)
+                {
+                    <h2>Aliases</h2>
+                    <ul>
+                        @foreach (var alias in SuperHero.Biography.Aliases)
+                        {
+                            <li>@alias</li>
+                        }
+                    </ul>
+                }
+
+                @if (!string.IsNullOrEmpty(SuperHero.Work.Occupation))
+                {
+                    <p><strong>Occupation:</strong> @SuperHero.Work.Occupation</p>
+                }
+
+                @if (!string.IsNullOrEmpty(SuperHero.Work.BaseOfOperation))
+                {
+                    <p><strong>Base:</strong> @SuperHero.Work.BaseOfOperation</p>
+                }
+
+                @if (!string.IsNullOrEmpty(SuperHero.Connections.GroupAffiliation))
+                {
+                    <p><strong>Group Affiliation:</strong> @SuperHero.Connections.GroupAffiliation</p>
+                }
+
+                @if (!string.IsNullOrEmpty(SuperHero.Connections.Relatives))
+                {
+                    <p><strong>Relatives:</strong> @SuperHero.Connections.Relatives</p>
+                }
+            </div>
+        </div>
+        <div>
+
+
+            <div>
+                @if (string.IsNullOrEmpty(characterDescription))
+                {
+                    <span class="blinking-cursor">|</span>
+                }
+                else
+                {
+                    <p>@characterDescription</p>
+                }
+            </div>
+            @if (isDescriptionLoaded)
+            {
+                <div>
+                    <div class="details-container">
+                        <div class="chat-box">
+                            @foreach (var message in Messages)
+                            {
+                                <div class="message @(message.Role==ChatRole.User ? "user-message": "ai-message")">
+                                    <p>@message.Text</p>
+                                </div>
+                            }
+                        </div>
+                        <div class="input-container">
+                            <input @bind="UserInput" @bind:event="oninput" placeholder="Type your message..." class="input"/>
+                            <button @onclick="SendMessage" class="button">Send</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    }
+</div>
+@code {
+    private SuperHero SuperHero = null;
+    private string UserInput { get; set; } = string.Empty;
+    private string? characterDescription = string.Empty;
+    [Parameter]
+    public string Id { get; set; } = "0";
+    private List<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+    private string prompt = string.Empty;
+
+    private bool isDescriptionLoaded = false;
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(UserInput))
+        {
+            // Add user message to the chat
+            Messages.Add(new ChatMessage { Text = UserInput, Role = ChatRole.User });
+
+            var contextMessages = new List<ChatMessage>(Messages);
+            contextMessages.Insert(0, new ChatMessage { Text = prompt, Role = ChatRole.System });
+            var aiResponse = await chatClient.GetResponseAsync(contextMessages);
+            
+
+
+            // Add AI response to the chat
+            Messages.Add(aiResponse.Message);
+
+            // Clear the input field
+            UserInput = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation($"Loading super hero {Id}  from API...");
+
+        SuperHero = await SuperHeroClientService.GetSuperHeroesByIdAsync(Id) ?? new();
+        Logger.LogInformation("Loading completed super heroes from API...");
+    }
+
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        if (SuperHero != null && string.IsNullOrEmpty(characterDescription))
+        {
+            Logger.LogInformation($"Loading super hero description from AI...");
+            var options = new JsonSerializerOptions
+                {
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, // Ignore null values
+                    WriteIndented = true // Optional: Makes the JSON more readable
+                };
+
+            var serializedSuperHero = JsonSerializer.Serialize(SuperHero, options);
+            prompt = $"You are a creative writer. Based on the following JSON data about a superhero, generate a detailed and engaging description of the character. Include their name, abilities, background, and any notable traits or achievements. Make the description concise yet captivating, suitable for a superhero profile. json data : {serializedSuperHero}";
+            
+            await foreach (var chunk in chatClient.GetStreamingResponseAsync(prompt))
+            {
+                characterDescription += chunk.Text;
+                StateHasChanged();
+
+            }
+            isDescriptionLoaded = true;
+            StateHasChanged();
+            Logger.LogInformation($"Loading complete for super hero description from AI...");
+        }
+    }
+    }

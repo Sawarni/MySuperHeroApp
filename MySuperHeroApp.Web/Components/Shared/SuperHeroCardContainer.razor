@@ -1,0 +1,16 @@
+﻿@using MySuperHeroApp.Web.Model
+@using MySuperHeroApp.Web.ServiceClients
+@inject SuperHeroServiceClient SuperHeroClientService;
+ 
+
+<div class="card-container">
+    @foreach (var superHero in SuperHeroes)
+    {
+        <SuperHeroCard SuperHero="@superHero" />
+    }
+</div>
+@code{
+    [Parameter]
+    public List<SuperHero> SuperHeroes { get; set; } = new();    
+
+}

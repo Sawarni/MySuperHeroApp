@@ -7,6 +7,7 @@ it also has a generative AI component using microsoft phi3 model running inside 
 ## Introduction
 My son is a big fan of comic characters. He is three year old and has lots of questions related different superheroes and villains. So, I decided to create this fun app where he can see his favourite super heroes and villains and ask questions about it. The GenAI powered chatbot answers his questions. 
 With dot net stack, it took me less than 15 hours to write it from scratch.
+Although I have not used any design pattern and kept thing simple and minimalistic as it is just a fun project created for my kid.
 
 ## Pre-requisite
 To run the application you would need the follwing:
@@ -55,4 +56,19 @@ Click on the character card to get specific details.
 On the detail page, data from api is shown as it is. Also the description is generated from the AI using the data provided by API as context. 
 
 Once the profile information is generated, you can also chat with AI to get answers to any other question you have.
+
+Here is how this application looks like in my computer :)
+
+
+
+
+https://github.com/user-attachments/assets/565fece5-ebe4-43bb-8508-b3768fc6d8b8
+
+
+For Gen AI capability go to detail character page.
+
+
+
+
+https://github.com/user-attachments/assets/029d1c7b-272a-43e2-b4d4-3a6ea4280204
 

@@ -5,10 +5,10 @@ namespace MySuperHeroApp.Web.ServiceClients
     public class SuperHeroServiceClient(HttpClient httpClient)
     {
         public string? ApiBaseUrl => httpClient.GetStringAsync(httpClient.BaseAddress).Result?.ToString();
-        public async Task<SuperHero[]> GetSuperHeroesByPublisherAsync(string publisher,int page,int maxItems, CancellationToken cancellationToken = default)
+        public async Task<SuperHero[]> GetSuperHeroesByPublisherAsync(string publisher, int page, int maxItems, CancellationToken cancellationToken = default)
         {
             List<SuperHero>? superHeroes = await httpClient.GetFromJsonAsync<List<SuperHero>>($"/api/{publisher}/superheroes/{page}/{maxItems}", cancellationToken);
-            
+
             return superHeroes?.ToArray() ?? Array.Empty<SuperHero>();
         }
 
@@ -26,14 +26,27 @@ namespace MySuperHeroApp.Web.ServiceClients
             return superHero;
         }
 
+        public async Task<List<SuperHero>?> GetAllSuperHeroesAsync(CancellationToken cancellationToken = default)
+        {
+            List<SuperHero>? superHeroes = await httpClient.GetFromJsonAsync<List<SuperHero>?>($"/api/superheroes", cancellationToken);
+            return superHeroes;
+        }
+
         public async Task<List<string>?> GetPublishersAsync(CancellationToken cancellationToken = default)
         {
             var publishers = await httpClient.GetFromJsonAsync<List<string>>($"/api/superheroes/publishers", cancellationToken);
 
-            return publishers?.Where(x=> !string.IsNullOrWhiteSpace(x)).ToList() ;
+            return publishers?.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
         }
 
-        public  string GetPicture(string id, CancellationToken cancellationToken = default)
+        public async Task<bool> UpdateSuperHeroAsync(SuperHero superHero, CancellationToken cancellationToken = default)
+        {
+           
+            var response = await httpClient.PutAsJsonAsync($"/api/superheroes/{superHero.Id}", superHero, cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+
+        public string GetPicture(string id, CancellationToken cancellationToken = default)
         {
             var pic = httpClient.GetByteArrayAsync($"/api/superheroes/image/{id}", cancellationToken).Result;
             var base64String = Convert.ToBase64String(pic);
@@ -41,5 +54,5 @@ namespace MySuperHeroApp.Web.ServiceClients
         }
     }
 
-   
+
 }

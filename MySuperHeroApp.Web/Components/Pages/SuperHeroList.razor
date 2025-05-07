@@ -1,0 +1,135 @@
+﻿@page "/superherolist"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MySuperHeroApp.Web.Model
+@using MySuperHeroApp.Web.ServiceClients
+@attribute [StreamRendering(true)]
+ @rendermode InteractiveServer
+@inject ILogger<SuperHeroList> Logger;
+@inject SuperHeroServiceClient SuperHeroService;
+
+<h3>SuperHeroList</h3>
+@if (SuperHeroes is null)
+{
+    <MySuperHeroApp.Web.Components.Shared.SuperHeroLoader />
+}
+else
+{
+    <div>
+        
+
+         <QuickGrid Items="@SuperHeroes.AsQueryable()" Class="table table-dark table-bordered">
+            <PropertyColumn Property="@(hero => hero.Id)" Title="Id" />
+            <PropertyColumn Property="@(hero => hero.Name)" Title="Name" Sortable="true" />
+            <PropertyColumn Property="@(hero => hero.Biography.AlterEgos)" Title="Alter Ego" Sortable="true"  />
+            <PropertyColumn Property="@(hero => hero.Biography.Publisher)" Title="Publisher" Sortable="true" />
+            <PropertyColumn Property="@(hero => hero.Biography.Alignment)" Title="Alignment" Sortable="true" />
+            <PropertyColumn Property="@(hero => hero.Appearance.Gender)" Title="Gender" Sortable="true" />
+                
+            <TemplateColumn Title="Actions">
+                    <button class="btn btn-primary" @onclick="() => EditHero(context)">Edit</button>
+               
+            </TemplateColumn>
+        </QuickGrid>
+        @* <table class="table table-dark table-responsive table-bordered">
+
+    <thead>
+    <tr>
+    <th>Id</th>
+    <th>Name</th>
+    <th>Alter Ego</th>
+    <th>Publisher</th>
+    <th>Alignment</th>
+    <th>Gender</th>
+    <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var hero in SuperHeroes)
+    {
+    <tr>
+    <td>@hero.Id</td>
+    <td>@hero.Name</td>
+    <td>@hero.Biography.AlterEgos</td>
+    <td>@hero.Biography.Publisher</td>
+    <td>@hero.Biography.Alignment</td>
+    <td>@hero.Appearance.Gender</td>
+    <td>
+    <button class="btn btn-primary" @onclick="() => EditHero(hero)">Edit</button>
+    </td>
+
+    </tr>
+    }
+    </tbody>
+    </table> *@
+    </div>
+    @if (IsEditModalVisible)
+    {
+        <div class="modal">
+            <div class="modal-content">
+                <h4>Edit Superhero</h4>
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input class="form-control" @bind="SelectedHero.Name" />
+                </div>
+               
+                <div class="form-group">
+                    <label>Publisher:</label>
+                    <input class="form-control" @bind="SelectedHero.Biography.Publisher" />
+                </div>
+                <div class="form-group">
+                    <label>Alignment:</label>
+                    <input class="form-control" @bind="SelectedHero.Biography.Alignment" />
+                </div>
+                <div class="form-group">
+                    <label>Gender:</label>
+                    <input class="form-control" @bind="SelectedHero.Appearance.Gender" />
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-success" @onclick="SaveHero">Save</button>
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+
+@code {
+    private List<SuperHero>? SuperHeroes = null;
+    private SuperHero? SelectedHero;
+    private bool IsEditModalVisible = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        SuperHeroes = await SuperHeroService.GetAllSuperHeroesAsync() ?? new();
+    }
+
+    private void EditHero(SuperHero hero)
+    {
+        SelectedHero = hero;
+        IsEditModalVisible = true;
+    }
+
+    private async Task SaveHero()
+    {
+        if (SelectedHero != null)
+        {
+            await SuperHeroService.UpdateSuperHeroAsync(SelectedHero);
+            var heroToUpdate = SuperHeroes?.FirstOrDefault(h => h.Id == SelectedHero.Id);
+            if (heroToUpdate != null)
+            {
+                heroToUpdate.Name = SelectedHero.Name;
+                heroToUpdate.Biography.FullName = SelectedHero.Biography.FullName;
+                heroToUpdate.Biography.PlaceOfBirth = SelectedHero.Biography.PlaceOfBirth;
+            }
+        }
+        CloseModal();
+    }
+
+    private void CloseModal()
+    {
+        IsEditModalVisible = false;
+        SelectedHero = null;
+    }
+
+}

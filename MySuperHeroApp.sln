@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34916.146
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MySuperHeroApp.AppHost", "MySuperHeroApp.AppHost\MySuperHeroApp.AppHost.csproj", "{EB5D97C9-F128-4EB4-A0CB-C1D24C9D551E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MySuperHeroApp.AppHost", "MySuperHeroApp.AppHost\MySuperHeroApp.AppHost.csproj", "{EB5D97C9-F128-4EB4-A0CB-C1D24C9D551E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MySuperHeroApp.ServiceDefaults", "MySuperHeroApp.ServiceDefaults\MySuperHeroApp.ServiceDefaults.csproj", "{0BAF10EB-0864-4A43-BAAF-E9E3BDAA3805}"
 EndProject

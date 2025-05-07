@@ -16,7 +16,8 @@ namespace MySuperHeroApp.ApiService.Api
                   .AddSyncAllSuperHeroEndpoint()
                   .AddGetSuperHeroImageEndpoint()
                   .AddGetSuperHeroesByPublisherEndpoint()
-                  .AddGetAllSuperHeroesByPublisherEndpoint();
+                  .AddGetAllSuperHeroesByPublisherEndpoint()
+                  .AddUpdateSuperHeroEndpoint();
         }
 
         private static IEndpointRouteBuilder AddGetSuperHeroImageEndpoint(this IEndpointRouteBuilder routes)
@@ -103,7 +104,8 @@ namespace MySuperHeroApp.ApiService.Api
         {
             routes.MapGet("/api/superheroes", async (SuperHeroDbContext db) =>
             {
-                return await db.SuperHeroes.ToListAsync();
+                var values =  await db.SuperHeroes.ToListAsync();
+                return Results.Ok(values);
             })
             .WithName("GetAllSuperHeroes")
             .Produces<List<SuperHero>>(StatusCodes.Status200OK);
@@ -150,6 +152,32 @@ namespace MySuperHeroApp.ApiService.Api
             })
             .WithName("GetAllSuperHeroesByPublisher")
             .Produces<List<SuperHero>>(StatusCodes.Status200OK);
+            return routes;
+        }
+
+        private static IEndpointRouteBuilder AddUpdateSuperHeroEndpoint(this IEndpointRouteBuilder routes)
+        {
+            routes.MapPut("/api/superheroes/{id}", async (string id, [FromBody] SuperHero newSuperHero,
+       [FromServices] SuperHeroDbContext db) =>
+            {
+
+
+                var superhero = await db.SuperHeroes
+                    .FirstOrDefaultAsync(s => s.Id == id);
+                if (superhero == null)
+                    return Results.NotFound();
+
+                superhero.Name = newSuperHero.Name;
+                superhero.Biography.Publisher = newSuperHero.Biography.Publisher;
+                superhero.Biography.Alignment = newSuperHero.Biography.Alignment;
+                superhero.Appearance.Gender = newSuperHero.Appearance.Gender;
+                await db.SaveChangesAsync();
+
+                return Results.Ok(superhero);
+            })
+            .WithName("UpdateSuperHeroById")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
             return routes;
         }
 

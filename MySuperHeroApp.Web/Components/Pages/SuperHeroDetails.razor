@@ -163,6 +163,12 @@
                                     <p>@message.Text</p>
                                 </div>
                             }
+                            @if (isChatResponsingInProgress)
+                            {
+                                <div class="message ai-message">
+                                       <span class="blinking-cursor"> Thinking...</span>
+                                </div>
+                            }
                         </div>
                         <div class="input-container">
                             <input @bind="UserInput" @bind:event="oninput" placeholder="Type your message..." class="input"/>
@@ -183,7 +189,7 @@
     public string Id { get; set; } = "0";
     private List<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
     private string prompt = string.Empty;
-
+    private bool isChatResponsingInProgress = false;
     private bool isDescriptionLoaded = false;
     private async Task SendMessage()
     {
@@ -191,19 +197,29 @@
         {
             // Add user message to the chat
             Messages.Add(new ChatMessage { Text = UserInput, Role = ChatRole.User });
-
+           // string userPrompt = UserInput;
             var contextMessages = new List<ChatMessage>(Messages);
             contextMessages.Insert(0, new ChatMessage { Text = prompt, Role = ChatRole.System });
-            var aiResponse = await chatClient.GetResponseAsync(contextMessages);
-            
-
-
-            // Add AI response to the chat
-            Messages.Add(aiResponse.Message);
-
-            // Clear the input field
+            isChatResponsingInProgress = true;
             UserInput = string.Empty;
             StateHasChanged();
+
+            int chunkCount = 0;
+            await foreach (var chunk in chatClient.GetStreamingResponseAsync(contextMessages))
+            {
+                if(chunkCount == 0)
+                {
+                    Messages.Add(new ChatMessage { Text = chunk.Text, Role = ChatRole.System });
+                    chunkCount++;
+                    isChatResponsingInProgress = false;                    
+                }
+                else
+                {
+                    Messages[Messages.Count - 1].Text += chunk.Text;                    
+                }
+                StateHasChanged();
+            }
+
         }
     }
 
